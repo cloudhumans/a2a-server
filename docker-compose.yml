@@ -11,7 +11,8 @@ services:
       - "127.0.0.1:${AGENT_PORT:-8000}:8000"
 
   inspector:
-    image: ghcr.io/a2aproject/a2a-inspector:v0.2.0
+    build: https://github.com/a2aproject/a2a-inspector.git#v0.2.0
+    image: a2a-inspector:v0.2.0
     depends_on:
       agent:
         condition: service_healthy

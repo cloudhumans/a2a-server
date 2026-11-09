@@ -38,9 +38,13 @@ O Inspector exige um token de sessão. Ele imprime a URL completa no log ao inic
 docker compose logs inspector
 ```
 
-Abra a URL que aparece ali (com `?token=...`). Abrir só `http://localhost:8080` não entra.
+Abra a URL que aparece ali (com `?token=...`). Abrir só `http://localhost:8080` não entra. O log sempre mostra a porta interna `8080`; se você mudou `INSPECTOR_PORT`, troque a porta no link e mantenha o token.
 
 As portas ficam presas a `127.0.0.1`. Para mudar, use `AGENT_PORT` e `INSPECTOR_PORT` no `.env`.
+
+O projeto do Inspector ainda não publica imagem pronta, então o compose monta a imagem a partir do código-fonte oficial, na tag `v0.2.0`. O primeiro `docker compose up --build` baixa as imagens de Node e Go usadas para compilar (algumas centenas de MB) e leva alguns minutos; depois disso fica em cache.
+
+Dentro do compose, o Inspector já recebe push notifications no próprio webhook: marque "Push notifications" no chat dele e acompanhe a entrega no painel do agente.
 
 ## Rodando sem Docker
 
