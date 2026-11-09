@@ -19,6 +19,8 @@ class Settings:
     progress_interval_seconds: int
     strict_push_urls: bool
     traffic_capacity: int
+    force_fail: bool
+    force_fail_message: str
 
     @property
     def auth_enabled(self) -> bool:
@@ -52,4 +54,7 @@ class Settings:
             strict_push_urls=os.getenv('PUSH_URL_VALIDATION', 'off').lower()
             == 'strict',
             traffic_capacity=int(os.getenv('TRAFFIC_CAPACITY', '500')),
+            force_fail=os.getenv('FORCE_FAIL', 'false').strip().lower() in ('1', 'true', 'yes'),
+            force_fail_message=os.getenv('FORCE_FAIL_MESSAGE', '').strip()
+            or 'Simulated failure: this agent runs with FORCE_FAIL=true.',
         )

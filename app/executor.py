@@ -28,10 +28,12 @@ class ReferenceAgentExecutor(AgentExecutor):
         agent: ReferenceAgent,
         default_delay_seconds: int,
         progress_interval_seconds: int,
+        force_fail_message: str | None = None,
     ) -> None:
         self._agent = agent
         self._default_delay = default_delay_seconds
         self._progress_interval = progress_interval_seconds
+        self._force_fail_message = force_fail_message
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
         message = context.message
@@ -58,6 +60,10 @@ class ReferenceAgentExecutor(AgentExecutor):
         if delay is True:
             delay = self._default_delay
         await self._wait(updater, int(delay))
+
+        if self._force_fail_message:
+            await updater.failed(self._message(updater, self._force_fail_message))
+            return
 
         if directives.get('fail'):
             await updater.failed(self._message(updater, 'Simulated failure requested with [fail].'))

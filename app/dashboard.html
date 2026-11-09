@@ -251,6 +251,7 @@ function showAgent(agent) {
     el('a', { href: agent.card_url, target: '_blank', rel: 'noopener', text: 'Agent card' }),
     el('span', { text: `LLM: ${agent.llm}` }),
     el('span', { text: `Auth: ${auth}` }),
+    agent.force_fail ? el('span', { class: 'pill err', text: 'FORCE_FAIL on' }) : null,
   );
 }
 

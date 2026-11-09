@@ -122,6 +122,7 @@ def create_app(settings: Settings | None = None) -> Starlette:
             agent,
             default_delay_seconds=settings.default_delay_seconds,
             progress_interval_seconds=settings.progress_interval_seconds,
+            force_fail_message=settings.force_fail_message if settings.force_fail else None,
         ),
         task_store=InMemoryTaskStore(),
         agent_card=card,
@@ -153,6 +154,7 @@ def create_app(settings: Settings | None = None) -> Starlette:
                     'llm': agent.mode,
                     'auth': settings.auth_mode,
                     'api_key_header': settings.api_key_header if settings.auth_mode == 'api_key' else None,
+                    'force_fail': settings.force_fail,
                 },
             }
         )
@@ -172,6 +174,8 @@ def create_app(settings: Settings | None = None) -> Starlette:
         logger.info('Agent card: %s%s', base_url(settings), AGENT_CARD_WELL_KNOWN_PATH)
         logger.info('Dashboard:  %s/dashboard', base_url(settings))
         logger.info('LLM: %s | auth: %s', agent.mode, settings.auth_mode)
+        if settings.force_fail:
+            logger.warning('FORCE_FAIL is on: every task ends in failed')
         yield
         await push_client.aclose()
 

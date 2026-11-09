@@ -71,6 +71,19 @@ Exemplos: `[delay=420] gere o relatório` exercita o caminho assíncrono de uma 
 
 `DEFAULT_DELAY_SECONDS` aplica um atraso a toda mensagem que não tenha `[delay=N]`.
 
+## Comportamento fixo, sem depender da mensagem
+
+Quando o cliente manda um texto que você não controla (por exemplo, o botão de mensagem de teste de uma plataforma), os comandos acima não chegam. Para esses casos, o comportamento pode ser fixado por variável de ambiente, e dá para subir variações do mesmo agente lado a lado:
+
+| Variável | Efeito |
+|---|---|
+| `FORCE_FAIL=true` | Toda tarefa termina em `failed` com a mensagem de `FORCE_FAIL_MESSAGE`, depois do atraso configurado. Não chama o LLM |
+| `FORCE_FAIL_MESSAGE` | Texto do erro (padrão: `Simulated failure: this agent runs with FORCE_FAIL=true.`) |
+| `DEFAULT_DELAY_SECONDS=N` | Toda tarefa espera N segundos antes de responder |
+| `OPENAI_API_KEY` vazio | Modo eco determinístico: a resposta é `Echo: <texto recebido>` |
+
+O painel mostra uma etiqueta `FORCE_FAIL on` quando a falha forçada está ligada.
+
 ## Autenticação
 
 | `A2A_AUTH_MODE` | O cliente envia |
@@ -129,6 +142,8 @@ O script sobe o próprio webhook em `127.0.0.1:8099`. Se o agente roda em outra 
 | `PROGRESS_INTERVAL_SECONDS` | `10` | Intervalo das atualizações `working` durante o atraso |
 | `PUSH_URL_VALIDATION` | `off` | `strict` recusa webhooks em endereços privados ou de loopback |
 | `TRAFFIC_CAPACITY` | `500` | Entradas guardadas pelo painel |
+| `FORCE_FAIL` | `false` | `true` faz toda tarefa terminar em `failed` |
+| `FORCE_FAIL_MESSAGE` | mensagem padrão em inglês | Texto do erro quando `FORCE_FAIL` está ligado |
 
 ## Limites
 
