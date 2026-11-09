@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A2A Agent Traffic</title>
+<style>
+:root {
+  --bg: #f7f7f5;
+  --surface: #ffffff;
+  --border: #e3e2de;
+  --text: #1f1f1d;
+  --muted: #6b6a66;
+  --accent: #2f5bd3;
+  --inbound: #2f5bd3;
+  --push: #8a4fd1;
+  --ok: #1d7f4e;
+  --warn: #a86a00;
+  --err: #c2382f;
+  --code-bg: #f1f0ec;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161615;
+    --surface: #1f1f1d;
+    --border: #33322f;
+    --text: #ecebe7;
+    --muted: #9b9a95;
+    --accent: #7c9cf0;
+    --inbound: #7c9cf0;
+    --push: #b98cf0;
+    --ok: #4fc58a;
+    --warn: #e0a640;
+    --err: #f07a70;
+    --code-bg: #262624;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 20px;
+}
+.title-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; }
+h1 { font-size: 17px; margin: 0; font-weight: 600; }
+.meta { color: var(--muted); font-size: 13px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.meta a { color: var(--accent); }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; align-items: center; }
+button, select {
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+button:hover { border-color: var(--muted); }
+.live { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; margin-left: auto; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
+.dot.paused { background: var(--warn); }
+.dot.down { background: var(--err); }
+main { padding: 16px 20px 40px; max-width: 1200px; margin: 0 auto; }
+.empty { color: var(--muted); padding: 40px 0; text-align: center; }
+.empty code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px; }
+.entry { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
+.row {
+  display: grid;
+  grid-template-columns: 74px 68px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 9px 12px;
+  cursor: pointer;
+}
+.time { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 12px; }
+.kind { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.kind.inbound { color: var(--inbound); }
+.kind.push { color: var(--push); }
+.what { min-width: 0; }
+.what .op { font-weight: 600; }
+.what .path { color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.right { display: flex; gap: 8px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+.pill { font-size: 12px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--border); white-space: nowrap; }
+.pill.ok { color: var(--ok); border-color: currentColor; }
+.pill.warn { color: var(--warn); border-color: currentColor; }
+.pill.err { color: var(--err); border-color: currentColor; }
+.pill.pending { color: var(--muted); }
+.dur { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.details { border-top: 1px solid var(--border); padding: 10px 12px 12px; display: none; }
+.entry.open .details { display: block; }
+.details h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 10px 0 4px; }
+.details h3:first-child { margin-top: 0; }
+pre {
+  margin: 0;
+  background: var(--code-bg);
+  border-radius: 6px;
+  padding: 10px;
+  overflow: auto;
+  max-height: 360px;
+  font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 760px) {
+  header, main { padding-left: 16px; padding-right: 16px; }
+  .row { grid-template-columns: 60px minmax(0, 1fr); }
+  .row .kind { display: none; }
+  .row .right { grid-column: 1 / -1; justify-content: flex-start; }
+  .cols { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="title-row">
+    <h1 id="agent-name">A2A Agent Traffic</h1>
+    <div class="meta" id="agent-meta"></div>
+  </div>
+  <div class="toolbar">
+    <select id="filter" aria-label="Filter">
+      <option value="all">All traffic</option>
+      <option value="inbound">Inbound calls</option>
+      <option value="push">Push notifications</option>
+    </select>
+    <button id="pause">Pause</button>
+    <button id="clear">Clear</button>
+    <span class="live"><span class="dot" id="dot"></span><span id="live-label">Live</span></span>
+  </div>
+</header>
+<main>
+  <div id="list"></div>
+  <div class="empty" id="empty">
+    No traffic yet. Point an A2A client at the agent card shown above, or send a request to <code>/a2a/jsonrpc</code>.
+  </div>
+</main>
+<script>
+const state = { version: 0, entries: new Map(), open: new Set(), paused: false, filter: 'all' };
+const list = document.getElementById('list');
+const empty = document.getElementById('empty');
+
+const STATE_CLASS = {
+  TASK_STATE_COMPLETED: 'ok', completed: 'ok',
+  TASK_STATE_WORKING: 'pending', working: 'pending',
+  TASK_STATE_SUBMITTED: 'pending', submitted: 'pending',
+  TASK_STATE_INPUT_REQUIRED: 'warn', 'input-required': 'warn',
+  TASK_STATE_AUTH_REQUIRED: 'warn', 'auth-required': 'warn',
+  TASK_STATE_FAILED: 'err', failed: 'err',
+  TASK_STATE_REJECTED: 'err', rejected: 'err',
+  TASK_STATE_CANCELED: 'err', canceled: 'err',
+};
+
+function el(tag, attrs = {}, children = []) {
+  const node = document.createElement(tag);
+  for (const [key, value] of Object.entries(attrs)) {
+    if (key === 'class') node.className = value;
+    else if (key === 'text') node.textContent = value;
+    else node.setAttribute(key, value);
+  }
+  for (const child of [].concat(children)) if (child) node.append(child);
+  return node;
+}
+
+function pretty(body) {
+  if (!body) return '(empty)';
+  const lines = body.split('\n');
+  const dataLines = lines.filter(l => l.startsWith('data:'));
+  try {
+    if (dataLines.length) return dataLines.map(l => JSON.stringify(JSON.parse(l.slice(5)), null, 2)).join('\n\n');
+    return JSON.stringify(JSON.parse(body), null, 2);
+  } catch (_) {
+    return body;
+  }
+}
+
+function shortState(value) {
+  return String(value).replace('TASK_STATE_', '').toLowerCase().replace('_', '-');
+}
+
+function statusPill(entry) {
+  if (entry.error) return el('span', { class: 'pill err', text: 'network error' });
+  if (entry.status == null) return el('span', { class: 'pill pending', text: 'in flight' });
+  const cls = entry.status >= 500 ? 'err' : entry.status >= 400 ? 'warn' : 'ok';
+  return el('span', { class: `pill ${cls}`, text: `HTTP ${entry.status}` });
+}
+
+function render(entry) {
+  const time = new Date(entry.at).toLocaleTimeString([], { hour12: false });
+  const op = entry.kind === 'push'
+    ? `Push · ${entry.event || 'notification'}`
+    : entry.rpc_method || `${entry.method} ${entry.path.split('?')[0].replace(/^\/a2a\/rest/, 'REST')}`;
+  const right = el('div', { class: 'right' }, [
+    entry.task_state ? el('span', { class: `pill ${STATE_CLASS[entry.task_state] || ''}`, text: shortState(entry.task_state) }) : null,
+    entry.rpc_error ? el('span', { class: 'pill err', text: entry.rpc_error }) : null,
+    statusPill(entry),
+    entry.duration_ms != null ? el('span', { class: 'dur', text: `${entry.duration_ms} ms` }) : null,
+  ]);
+  const subtitle = [entry.kind === 'push' ? `→ ${entry.path}` : entry.path];
+  if (entry.task_id) subtitle.push(`task ${entry.task_id.slice(0, 8)}`);
+  const row = el('div', { class: 'row' }, [
+    el('span', { class: 'time', text: time }),
+    el('span', { class: `kind ${entry.kind}`, text: entry.kind }),
+    el('div', { class: 'what' }, [
+      el('div', { class: 'op', text: op }),
+      el('div', { class: 'path', text: subtitle.join(' · ') }),
+    ]),
+    right,
+  ]);
+  const details = el('div', { class: 'details' }, [
+    el('div', { class: 'cols' }, [
+      el('div', {}, [el('h3', { text: entry.kind === 'push' ? 'Sent to webhook' : 'Request' }), el('pre', { text: pretty(entry.request_body) })]),
+      el('div', {}, [
+        el('h3', { text: entry.kind === 'push' ? 'Webhook response' : 'Response' }),
+        el('pre', { text: entry.error ? entry.error : pretty(entry.response_body) }),
+      ]),
+    ]),
+    el('h3', { text: 'Request headers' }),
+    el('pre', { text: JSON.stringify(entry.request_headers || {}, null, 2) }),
+  ]);
+  const node = el('div', { class: `entry${state.open.has(entry.id) ? ' open' : ''}`, 'data-id': entry.id }, [row, details]);
+  row.addEventListener('click', () => {
+    node.classList.toggle('open');
+    if (node.classList.contains('open')) state.open.add(entry.id); else state.open.delete(entry.id);
+  });
+  return node;
+}
+
+function redraw() {
+  const visible = [...state.entries.values()]
+    .filter(e => state.filter === 'all' || e.kind === state.filter)
+    .sort((a, b) => b.id - a.id);
+  list.replaceChildren(...visible.map(render));
+  empty.style.display = visible.length ? 'none' : 'block';
+}
+
+function showAgent(agent) {
+  document.getElementById('agent-name').textContent = agent.name;
+  const auth = agent.auth === 'none' ? 'no auth' : agent.auth === 'bearer' ? 'Bearer token' : `API key (${agent.api_key_header})`;
+  const meta = document.getElementById('agent-meta');
+  meta.replaceChildren(
+    el('a', { href: agent.card_url, target: '_blank', rel: 'noopener', text: 'Agent card' }),
+    el('span', { text: `LLM: ${agent.llm}` }),
+    el('span', { text: `Auth: ${auth}` }),
+  );
+}
+
+async function poll() {
+  const dot = document.getElementById('dot');
+  const label = document.getElementById('live-label');
+  if (!state.paused) {
+    try {
+      const response = await fetch(`/dashboard/api/traffic?after=${state.version}`);
+      const data = await response.json();
+      showAgent(data.agent);
+      if (data.version < state.version) state.entries.clear();
+      for (const entry of data.entries) state.entries.set(entry.id, entry);
+      const changed = data.entries.length > 0 || data.version !== state.version;
+      state.version = data.version;
+      if (changed) redraw();
+      dot.className = 'dot';
+      label.textContent = 'Live';
+    } catch (_) {
+      dot.className = 'dot down';
+      label.textContent = 'Agent unreachable';
+    }
+  }
+  setTimeout(poll, 1000);
+}
+
+document.getElementById('filter').addEventListener('change', event => {
+  state.filter = event.target.value;
+  redraw();
+});
+document.getElementById('pause').addEventListener('click', event => {
+  state.paused = !state.paused;
+  event.target.textContent = state.paused ? 'Resume' : 'Pause';
+  document.getElementById('dot').className = state.paused ? 'dot paused' : 'dot';
+  document.getElementById('live-label').textContent = state.paused ? 'Paused' : 'Live';
+});
+document.getElementById('clear').addEventListener('click', async () => {
+  const response = await fetch('/dashboard/api/clear', { method: 'POST' });
+  const data = await response.json();
+  state.entries.clear();
+  state.open.clear();
+  state.version = data.version;
+  redraw();
+});
+
+redraw();
+poll();
+</script>
+</body>
+</html>
