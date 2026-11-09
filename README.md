@@ -69,7 +69,18 @@ Confere o Agent Card, o modo síncrono, `returnImmediately` com `GetTask`, a ent
 O [Inspector](https://github.com/a2aproject/a2a-inspector) é a ferramenta visual oficial do projeto A2A e funciona com qualquer agente, não só com este. O compose já o abre apontando para o agente e recebendo push no próprio webhook: marque "Push notifications" no chat e acompanhe a entrega no painel do A2A Server.
 
 - O log sempre mostra a porta interna `8080`; se você mudou `INSPECTOR_PORT`, troque a porta no link e mantenha o token.
-- O projeto ainda não publica imagem pronta, então o primeiro `docker compose up --build` compila o Inspector a partir do código-fonte (tag `v0.2.0`) e leva alguns minutos. Depois fica em cache.
+- O projeto ainda não publica imagem pronta, então o primeiro `docker compose up --build` compila o Inspector a partir do código-fonte e leva alguns minutos. Depois fica em cache. A versão fixada é um commit do `main` (`30c10de`), e não a `v0.2.0`, porque o reenvio editável da aba Traffic, usado abaixo, só existe depois dela.
+
+### Imitando um cliente que responde na hora e acompanha por push
+
+É o fluxo que plataformas como a ClaudIA usam: o `SendMessage` volta imediatamente com a tarefa em `submitted`, e o andamento chega por push ou por `GetTask`. A interface do chat não tem opção para `returnImmediately`, então o caminho é reenviar uma requisição editada:
+
+1. No **Chat**, desmarque **Stream**, marque **Push notifications** e mande qualquer mensagem. Ela serve só de molde.
+2. Na aba **Traffic**, clique na linha `POST /a2a/jsonrpc` dessa mensagem e depois em **Edit and resend**.
+3. No **Body**, dentro de `params.configuration`, acrescente `"returnImmediately": true,` antes de `"taskPushNotificationConfig"`. Troque o `messageId` por qualquer valor novo e o texto da mensagem por algo como `[delay=30] gere um relatório`.
+4. Clique em **Send**. A resposta aparece na própria aba Traffic, em milissegundos, com a tarefa em `TASK_STATE_SUBMITTED`.
+5. Na aba **Tasks**, a tarefa aparece na lista e vai de `working` a `completed` conforme os pushes chegam. Clique nela e em **Get** para fazer o `GetTask`, como o cliente faria.
+6. No painel do A2A Server, acompanhe os pushes saindo para o webhook do Inspector e a consulta `GetTask` chegando.
 
 ## Configuração
 
