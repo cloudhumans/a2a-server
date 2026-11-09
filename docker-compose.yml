@@ -1,9 +1,13 @@
+x-agent: &agent
+  build: .
+  image: a2a-reference-agent:local
+  env_file:
+    - path: .env
+      required: false
+
 services:
   agent:
-    build: .
-    env_file:
-      - path: .env
-        required: false
+    <<: *agent
     environment:
       HOST: 0.0.0.0
       PORT: 8000
@@ -11,8 +15,8 @@ services:
       - "127.0.0.1:${AGENT_PORT:-8000}:8000"
 
   inspector:
-    build: https://github.com/a2aproject/a2a-inspector.git#v0.2.0
-    image: a2a-inspector:v0.2.0
+    build: https://github.com/a2aproject/a2a-inspector.git#30c10de47a22dd5486846cea32d0c096cd854b52
+    image: a2a-inspector:30c10de
     depends_on:
       agent:
         condition: service_healthy
@@ -22,3 +26,29 @@ services:
       - --auth=${INSPECTOR_AUTH:-}
     ports:
       - "127.0.0.1:${INSPECTOR_PORT:-8080}:8080"
+
+  agent-fail:
+    <<: *agent
+    profiles: [variants]
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8000
+      AGENT_NAME: A2A Reference Agent (fail)
+      FORCE_FAIL: "true"
+    ports:
+      - "127.0.0.1:${AGENT_FAIL_PORT:-8001}:8000"
+
+  smoke:
+    <<: *agent
+    profiles: [test]
+    depends_on:
+      agent:
+        condition: service_healthy
+    healthcheck:
+      disable: true
+    command:
+      - python
+      - scripts/smoke_test.py
+      - --url=http://agent:8000
+      - --webhook-host=0.0.0.0
+      - --webhook-url=http://smoke:8099/hook

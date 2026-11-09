@@ -1,38 +1,54 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>A2A Agent Traffic</title>
+<title>A2A Server</title>
 <style>
 :root {
-  --bg: #f7f7f5;
+  --bg: #f6f6f3;
   --surface: #ffffff;
-  --border: #e3e2de;
-  --text: #1f1f1d;
-  --muted: #6b6a66;
+  --surface-2: #f1f0ec;
+  --border: #e2e1dc;
+  --text: #1d1d1b;
+  --muted: #6a6964;
+  --faint: #9a9993;
   --accent: #2f5bd3;
   --inbound: #2f5bd3;
-  --push: #8a4fd1;
-  --ok: #1d7f4e;
-  --warn: #a86a00;
-  --err: #c2382f;
-  --code-bg: #f1f0ec;
+  --inbound-bg: #e9effd;
+  --push: #7b45c9;
+  --push-bg: #f1eafb;
+  --ok: #1b7a4b;
+  --ok-bg: #e5f4ec;
+  --warn: #9a6200;
+  --warn-bg: #fbf0dc;
+  --err: #bf3329;
+  --err-bg: #fbe7e5;
+  --neutral-bg: #efeee9;
+  --shadow: 0 1px 2px rgba(20, 20, 18, .05);
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #161615;
-    --surface: #1f1f1d;
-    --border: #33322f;
-    --text: #ecebe7;
-    --muted: #9b9a95;
-    --accent: #7c9cf0;
-    --inbound: #7c9cf0;
-    --push: #b98cf0;
-    --ok: #4fc58a;
-    --warn: #e0a640;
-    --err: #f07a70;
-    --code-bg: #262624;
+    --bg: #141413;
+    --surface: #1d1d1b;
+    --surface-2: #252523;
+    --border: #32312e;
+    --text: #ecebe6;
+    --muted: #a09f99;
+    --faint: #75746f;
+    --accent: #8aa6f2;
+    --inbound: #8aa6f2;
+    --inbound-bg: #1f2740;
+    --push: #bf98f2;
+    --push-bg: #2b2140;
+    --ok: #5ccf94;
+    --ok-bg: #18301f;
+    --warn: #e5ad4f;
+    --warn-bg: #352a14;
+    --err: #f2867c;
+    --err-bg: #3a1d1a;
+    --neutral-bg: #2a2a27;
+    --shadow: none;
   }
 }
 * { box-sizing: border-box; }
@@ -40,125 +56,224 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
-header {
+code, pre, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+header.top {
   position: sticky;
   top: 0;
-  z-index: 2;
-  background: var(--surface);
+  z-index: 3;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--border);
-  padding: 14px 20px;
 }
-.title-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; }
-h1 { font-size: 17px; margin: 0; font-weight: 600; }
-.meta { color: var(--muted); font-size: 13px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
-.meta a { color: var(--accent); }
-.toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; align-items: center; }
-button, select {
-  font: inherit;
-  font-size: 13px;
-  color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 5px 10px;
-  cursor: pointer;
+.top .wrap { display: flex; align-items: center; gap: 14px; padding-top: 12px; padding-bottom: 12px; }
+.mark {
+  width: 34px; height: 34px; border-radius: 9px; flex: none;
+  display: grid; place-items: center;
+  background: linear-gradient(135deg, var(--inbound), var(--push));
+  color: #fff; font-weight: 700; font-size: 13px; letter-spacing: .02em;
 }
-button:hover { border-color: var(--muted); }
-.live { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; margin-left: auto; }
-.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
-.dot.paused { background: var(--warn); }
-.dot.down { background: var(--err); }
-main { padding: 16px 20px 40px; max-width: 1200px; margin: 0 auto; }
-.empty { color: var(--muted); padding: 40px 0; text-align: center; }
-.empty code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px; }
-.entry { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
+.brand h1 { margin: 0; font-size: 17px; line-height: 1.2; }
+.brand .sub { color: var(--muted); font-size: 13px; }
+.live { margin-left: auto; display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: 13px; white-space: nowrap; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 3px var(--ok-bg); }
+.dot.paused { background: var(--warn); box-shadow: 0 0 0 3px var(--warn-bg); }
+.dot.down { background: var(--err); box-shadow: 0 0 0 3px var(--err-bg); }
+main { padding-top: 20px; padding-bottom: 48px; }
+.intro { color: var(--muted); margin: 0 0 16px; max-width: 760px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 26px; }
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 14px 16px; box-shadow: var(--shadow); min-width: 0;
+}
+.card h2 { margin: 0 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; }
+.card p.help { margin: 0 0 10px; color: var(--muted); font-size: 13px; }
+.kv { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 12px; align-items: center; font-size: 13px; }
+.kv dt { color: var(--muted); white-space: nowrap; }
+.kv dd { margin: 0; min-width: 0; }
+.url { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.url code {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  background: var(--surface-2); padding: 3px 7px; border-radius: 6px; font-size: 12px; min-width: 0;
+}
+.icon-btn {
+  flex: none; border: 1px solid var(--border); background: var(--surface); color: var(--muted);
+  border-radius: 6px; font-size: 12px; padding: 2px 8px; cursor: pointer;
+}
+.icon-btn:hover { color: var(--text); border-color: var(--faint); }
+a { color: var(--accent); }
+.tag { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 999px; background: var(--neutral-bg); color: var(--muted); white-space: nowrap; }
+.tag.ok { background: var(--ok-bg); color: var(--ok); }
+.tag.warn { background: var(--warn-bg); color: var(--warn); }
+.tag.err { background: var(--err-bg); color: var(--err); }
+.tag.inbound { background: var(--inbound-bg); color: var(--inbound); }
+.tag.push { background: var(--push-bg); color: var(--push); }
+.section-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 16px; margin-bottom: 10px; }
+.section-head h2 { margin: 0; font-size: 17px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--muted); font-size: 13px; margin: 2px 0 12px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.seg button { border: 0; background: transparent; color: var(--muted); padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--border); }
+.seg button.on { background: var(--surface-2); color: var(--text); font-weight: 600; }
+.btn {
+  font: inherit; font-size: 13px; color: var(--text); background: var(--surface);
+  border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; cursor: pointer;
+}
+.btn:hover { border-color: var(--faint); }
+.task-chip { display: none; align-items: center; gap: 6px; font-size: 13px; background: var(--surface-2); border-radius: 999px; padding: 4px 6px 4px 12px; }
+.task-chip.show { display: inline-flex; }
+.task-chip button { border: 0; background: var(--border); color: var(--text); border-radius: 50%; width: 20px; height: 20px; cursor: pointer; line-height: 1; }
+.count { color: var(--faint); font-size: 13px; margin-left: auto; }
+.entry {
+  display: grid; grid-template-columns: 4px minmax(0, 1fr);
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  margin-bottom: 8px; overflow: hidden; box-shadow: var(--shadow);
+}
+.rail.inbound { background: var(--inbound); }
+.rail.push { background: var(--push); }
 .row {
-  display: grid;
-  grid-template-columns: 74px 68px minmax(0, 1fr) auto;
-  gap: 10px;
-  align-items: center;
-  padding: 9px 12px;
-  cursor: pointer;
+  display: grid; grid-template-columns: 70px minmax(0, 1fr) auto;
+  gap: 12px; align-items: center; padding: 10px 14px; cursor: pointer;
 }
-.time { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 12px; }
-.kind { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
-.kind.inbound { color: var(--inbound); }
-.kind.push { color: var(--push); }
+.row:hover { background: var(--surface-2); }
+.time { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 .what { min-width: 0; }
-.what .op { font-weight: 600; }
-.what .path { color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.what .title { font-weight: 600; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.what .tech { color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.what .tech a { cursor: pointer; text-decoration: none; border-bottom: 1px dotted currentColor; }
 .right { display: flex; gap: 8px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
-.pill { font-size: 12px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--border); white-space: nowrap; }
-.pill.ok { color: var(--ok); border-color: currentColor; }
-.pill.warn { color: var(--warn); border-color: currentColor; }
-.pill.err { color: var(--err); border-color: currentColor; }
-.pill.pending { color: var(--muted); }
-.dur { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
-.details { border-top: 1px solid var(--border); padding: 10px 12px 12px; display: none; }
+.dur { color: var(--faint); font-size: 12px; font-variant-numeric: tabular-nums; min-width: 52px; text-align: right; }
+.details { grid-column: 2; border-top: 1px solid var(--border); padding: 12px 14px 14px; display: none; }
 .entry.open .details { display: block; }
-.details h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 10px 0 4px; }
+.details h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 12px 0 5px; }
 .details h3:first-child { margin-top: 0; }
 pre {
-  margin: 0;
-  background: var(--code-bg);
-  border-radius: 6px;
-  padding: 10px;
-  overflow: auto;
-  max-height: 360px;
-  font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
-  white-space: pre-wrap;
-  word-break: break-word;
+  margin: 0; background: var(--surface-2); border-radius: 8px; padding: 10px 12px;
+  overflow: auto; max-height: 380px; font-size: 12px; line-height: 1.5; white-space: pre-wrap; word-break: break-word;
 }
 .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-@media (max-width: 760px) {
-  header, main { padding-left: 16px; padding-right: 16px; }
-  .row { grid-template-columns: 60px minmax(0, 1fr); }
-  .row .kind { display: none; }
-  .row .right { grid-column: 1 / -1; justify-content: flex-start; }
+.empty { background: var(--surface); border: 1px dashed var(--border); border-radius: 12px; padding: 22px 20px; }
+.empty h3 { margin: 0 0 6px; font-size: 15px; }
+.empty ol { margin: 8px 0 0; padding-left: 20px; color: var(--muted); }
+.empty li { margin-bottom: 8px; }
+.empty pre { margin-top: 6px; }
+@media (max-width: 900px) {
+  .cards { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .wrap { padding: 0 16px; }
+  .row { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .row .time { order: -1; }
+  .right { justify-content: flex-start; }
   .cols { grid-template-columns: 1fr; }
+  .count { margin-left: 0; width: 100%; }
 }
 </style>
 </head>
 <body>
-<header>
-  <div class="title-row">
-    <h1 id="agent-name">A2A Agent Traffic</h1>
-    <div class="meta" id="agent-meta"></div>
-  </div>
-  <div class="toolbar">
-    <select id="filter" aria-label="Filter">
-      <option value="all">All traffic</option>
-      <option value="inbound">Inbound calls</option>
-      <option value="push">Push notifications</option>
-    </select>
-    <button id="pause">Pause</button>
-    <button id="clear">Clear</button>
-    <span class="live"><span class="dot" id="dot"></span><span id="live-label">Live</span></span>
+<header class="top">
+  <div class="wrap">
+    <div class="mark" aria-hidden="true">A2A</div>
+    <div class="brand">
+      <h1>A2A Server</h1>
+      <div class="sub" id="agent-name">carregando…</div>
+    </div>
+    <span class="live"><span class="dot" id="dot"></span><span id="live-label">Ao vivo</span></span>
   </div>
 </header>
-<main>
-  <div id="list"></div>
-  <div class="empty" id="empty">
-    No traffic yet. Point an A2A client at the agent card shown above, or send a request to <code>/a2a/jsonrpc</code>.
-  </div>
+
+<main class="wrap">
+  <p class="intro">
+    Este painel mostra, do lado do servidor, tudo o que acontece com este agente A2A: cada chamada que um cliente faz
+    e cada aviso (push) que o servidor envia de volta. Use junto com o cliente que você está testando para ver as duas pontas da conversa.
+  </p>
+
+  <section class="cards">
+    <div class="card">
+      <h2>Agent Card</h2>
+      <p class="help">A ficha pública do agente, definida pelo protocolo A2A: nome, habilidades, endereços e autenticação exigida. É a primeira coisa que um cliente lê, e é essa URL que se cadastra numa plataforma.</p>
+      <div class="url"><code id="card-url">…</code><button class="icon-btn" data-copy="card-url">Copiar</button><a class="icon-btn" id="card-open" target="_blank" rel="noopener">Abrir</a></div>
+    </div>
+    <div class="card">
+      <h2>Endpoints</h2>
+      <p class="help">Onde os clientes falam com o agente. Os dois aceitam as versões 1.0 e 0.3 do protocolo.</p>
+      <dl class="kv">
+        <dt>JSON-RPC</dt><dd><div class="url"><code id="jsonrpc-url">…</code><button class="icon-btn" data-copy="jsonrpc-url">Copiar</button></div></dd>
+        <dt>HTTP+JSON</dt><dd><div class="url"><code id="rest-url">…</code><button class="icon-btn" data-copy="rest-url">Copiar</button></div></dd>
+      </dl>
+    </div>
+    <div class="card">
+      <h2>Configuração</h2>
+      <p class="help">Como este servidor está respondendo agora. Muda pelas variáveis de ambiente.</p>
+      <dl class="kv">
+        <dt>Modelo</dt><dd id="cfg-model">…</dd>
+        <dt>Autenticação</dt><dd id="cfg-auth">…</dd>
+        <dt>Atraso padrão</dt><dd id="cfg-delay">…</dd>
+        <dt>Falha forçada</dt><dd id="cfg-fail">…</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><h2>Tráfego</h2></div>
+    <div class="legend">
+      <span><span class="tag inbound">Recebida</span> chamada que um cliente fez a este servidor</span>
+      <span><span class="tag push">Push enviado</span> aviso que este servidor mandou ao webhook do cliente (modo assíncrono)</span>
+    </div>
+    <div class="toolbar">
+      <div class="seg" id="filter">
+        <button data-f="all" class="on">Tudo</button>
+        <button data-f="inbound">Recebidas</button>
+        <button data-f="push">Pushes</button>
+      </div>
+      <span class="task-chip" id="task-chip"><span id="task-chip-label"></span><button id="task-clear" title="Mostrar todas as tarefas">×</button></span>
+      <button class="btn" id="pause">Pausar</button>
+      <button class="btn" id="clear">Limpar</button>
+      <span class="count" id="count"></span>
+    </div>
+    <div id="list"></div>
+    <div class="empty" id="empty">
+      <h3>Nenhuma chamada ainda</h3>
+      <div style="color: var(--muted)">Assim que um cliente chamar o agente, as chamadas aparecem aqui. Para gerar tráfego:</div>
+      <ol>
+        <li>Abra o A2A Inspector que sobe junto no <code>docker compose</code> (o link com o token sai em <code>docker compose logs inspector</code>) e mande uma mensagem.</li>
+        <li>Ou chame direto pelo terminal:
+          <pre id="curl-example"></pre>
+        </li>
+        <li>Para testar estados, inclua na mensagem <code>[delay=30]</code>, <code>[input-required]</code> ou <code>[fail]</code>.</li>
+      </ol>
+    </div>
+  </section>
 </main>
+
 <script>
-const state = { version: 0, entries: new Map(), open: new Set(), paused: false, filter: 'all' };
+const state = { version: 0, entries: new Map(), open: new Set(), paused: false, filter: 'all', task: null, agent: null };
 const list = document.getElementById('list');
 const empty = document.getElementById('empty');
 
-const STATE_CLASS = {
-  TASK_STATE_COMPLETED: 'ok', completed: 'ok',
-  TASK_STATE_WORKING: 'pending', working: 'pending',
-  TASK_STATE_SUBMITTED: 'pending', submitted: 'pending',
-  TASK_STATE_INPUT_REQUIRED: 'warn', 'input-required': 'warn',
-  TASK_STATE_AUTH_REQUIRED: 'warn', 'auth-required': 'warn',
-  TASK_STATE_FAILED: 'err', failed: 'err',
-  TASK_STATE_REJECTED: 'err', rejected: 'err',
-  TASK_STATE_CANCELED: 'err', canceled: 'err',
+const STATES = {
+  SUBMITTED: ['recebida', ''],
+  WORKING: ['em andamento', ''],
+  COMPLETED: ['concluída', 'ok'],
+  INPUT_REQUIRED: ['aguardando o cliente', 'warn'],
+  AUTH_REQUIRED: ['aguardando autenticação', 'warn'],
+  FAILED: ['falhou', 'err'],
+  CANCELED: ['cancelada', 'err'],
+  REJECTED: ['rejeitada', 'err'],
 };
+
+function stateKey(value) {
+  return String(value || '').replace('TASK_STATE_', '').replace('-', '_').toUpperCase();
+}
+
+function stateTag(value) {
+  const [label, cls] = STATES[stateKey(value)] || [String(value).toLowerCase(), ''];
+  return el('span', { class: `tag ${cls}`, text: label });
+}
 
 function el(tag, attrs = {}, children = []) {
   const node = document.createElement(tag);
@@ -171,63 +286,100 @@ function el(tag, attrs = {}, children = []) {
   return node;
 }
 
+function parse(body) {
+  if (!body) return null;
+  const data = body.split('\n').filter(line => line.startsWith('data:'));
+  try { return JSON.parse(data.length ? data[data.length - 1].slice(5) : body); } catch (_) { return null; }
+}
+
 function pretty(body) {
-  if (!body) return '(empty)';
-  const lines = body.split('\n');
-  const dataLines = lines.filter(l => l.startsWith('data:'));
+  if (!body) return '(vazio)';
+  const lines = body.split('\n').filter(line => line.startsWith('data:'));
   try {
-    if (dataLines.length) return dataLines.map(l => JSON.stringify(JSON.parse(l.slice(5)), null, 2)).join('\n\n');
+    if (lines.length) return lines.map(line => JSON.stringify(JSON.parse(line.slice(5)), null, 2)).join('\n\n');
     return JSON.stringify(JSON.parse(body), null, 2);
-  } catch (_) {
-    return body;
-  }
+  } catch (_) { return body; }
 }
 
-function shortState(value) {
-  return String(value).replace('TASK_STATE_', '').toLowerCase().replace('_', '-');
+function inboundStory(entry) {
+  const path = entry.path.split('?')[0];
+  const method = entry.rpc_method || '';
+  const request = parse(entry.request_body) || {};
+  const config = (request.params || request).configuration || {};
+  const tags = [];
+  if (config.taskPushNotificationConfig || config.pushNotificationConfig) tags.push(['assíncrono, com push', 'push']);
+  if (config.returnImmediately || config.blocking === false) tags.push(['resposta imediata', '']);
+  if (entry.status === 401) return { title: 'Recusou a chamada: credencial ausente ou inválida', tags };
+  if (path.endsWith('agent-card.json') || path.endsWith('/card')) return { title: 'Leu o Agent Card', tags };
+  if (/SendStreamingMessage|message\/stream/.test(method) || path.endsWith('message:stream')) return { title: 'Recebeu uma mensagem com streaming', tags };
+  if (/SendMessage|message\/send/.test(method) || path.endsWith('message:send')) return { title: 'Recebeu uma mensagem', tags };
+  if (/GetTask|tasks\/get/.test(method) || (entry.method === 'GET' && /\/tasks\/[^/:]+$/.test(path))) return { title: 'Consultou o estado da tarefa', tags };
+  if (/CancelTask|tasks\/cancel/.test(method) || path.endsWith(':cancel')) return { title: 'Pediu o cancelamento da tarefa', tags };
+  if (/PushNotificationConfig/i.test(method) || path.includes('pushNotificationConfigs')) return { title: 'Configurou o push da tarefa', tags };
+  return { title: method || `${entry.method} ${path}`, tags };
 }
 
-function statusPill(entry) {
-  if (entry.error) return el('span', { class: 'pill err', text: 'network error' });
-  if (entry.status == null) return el('span', { class: 'pill pending', text: 'in flight' });
+function pushStory(entry) {
+  if (entry.error) return 'Não conseguiu avisar o webhook';
+  if (entry.event === 'artifactUpdate') return 'Avisou: a resposta está pronta';
+  if (entry.event === 'task') return 'Avisou: tarefa criada';
+  const key = stateKey(entry.task_state);
+  if (key === 'WORKING') return 'Avisou: tarefa em andamento';
+  if (key === 'COMPLETED') return 'Avisou: tarefa concluída';
+  if (key === 'INPUT_REQUIRED') return 'Avisou: o agente precisa de uma resposta do cliente';
+  if (key === 'FAILED') return 'Avisou: a tarefa falhou';
+  return 'Avisou o webhook';
+}
+
+function httpTag(entry) {
+  if (entry.error) return el('span', { class: 'tag err', text: 'erro de rede' });
+  if (entry.status == null) return el('span', { class: 'tag', text: 'em curso' });
   const cls = entry.status >= 500 ? 'err' : entry.status >= 400 ? 'warn' : 'ok';
-  return el('span', { class: `pill ${cls}`, text: `HTTP ${entry.status}` });
+  return el('span', { class: `tag ${cls}`, text: `HTTP ${entry.status}` });
 }
 
 function render(entry) {
   const time = new Date(entry.at).toLocaleTimeString([], { hour12: false });
-  const op = entry.kind === 'push'
-    ? `Push · ${entry.event || 'notification'}`
-    : entry.rpc_method || `${entry.method} ${entry.path.split('?')[0].replace(/^\/a2a\/rest/, 'REST')}`;
-  const right = el('div', { class: 'right' }, [
-    entry.task_state ? el('span', { class: `pill ${STATE_CLASS[entry.task_state] || ''}`, text: shortState(entry.task_state) }) : null,
-    entry.rpc_error ? el('span', { class: 'pill err', text: entry.rpc_error }) : null,
-    statusPill(entry),
-    entry.duration_ms != null ? el('span', { class: 'dur', text: `${entry.duration_ms} ms` }) : null,
+  const isPush = entry.kind === 'push';
+  const story = isPush ? { title: pushStory(entry), tags: [] } : inboundStory(entry);
+  const tech = [];
+  if (isPush) tech.push(`para ${entry.path}`);
+  else tech.push(`${entry.rpc_method ? entry.rpc_method + ' · ' : ''}${entry.method} ${entry.path.split('?')[0]}`);
+  const techNode = el('div', { class: 'tech mono', text: tech.join(' · ') });
+  if (entry.task_id) {
+    techNode.append(' · ');
+    const link = el('a', { title: 'Mostrar só esta tarefa', text: `tarefa ${entry.task_id.slice(0, 8)}` });
+    link.addEventListener('click', event => { event.stopPropagation(); state.task = entry.task_id; redraw(); });
+    techNode.append(link);
+  }
+  const title = el('div', { class: 'title' }, [
+    el('span', { class: `tag ${entry.kind}`, text: isPush ? 'Push enviado' : 'Recebida' }),
+    el('span', { text: story.title }),
+    ...story.tags.map(([label, cls]) => el('span', { class: `tag ${cls}`, text: label })),
   ]);
-  const subtitle = [entry.kind === 'push' ? `→ ${entry.path}` : entry.path];
-  if (entry.task_id) subtitle.push(`task ${entry.task_id.slice(0, 8)}`);
+  const right = el('div', { class: 'right' }, [
+    entry.task_state ? stateTag(entry.task_state) : null,
+    entry.rpc_error ? el('span', { class: 'tag err', text: entry.rpc_error }) : null,
+    httpTag(entry),
+    el('span', { class: 'dur', text: entry.duration_ms != null ? `${entry.duration_ms} ms` : '' }),
+  ]);
   const row = el('div', { class: 'row' }, [
     el('span', { class: 'time', text: time }),
-    el('span', { class: `kind ${entry.kind}`, text: entry.kind }),
-    el('div', { class: 'what' }, [
-      el('div', { class: 'op', text: op }),
-      el('div', { class: 'path', text: subtitle.join(' · ') }),
-    ]),
+    el('div', { class: 'what' }, [title, techNode]),
     right,
   ]);
   const details = el('div', { class: 'details' }, [
     el('div', { class: 'cols' }, [
-      el('div', {}, [el('h3', { text: entry.kind === 'push' ? 'Sent to webhook' : 'Request' }), el('pre', { text: pretty(entry.request_body) })]),
+      el('div', {}, [el('h3', { text: isPush ? 'Enviado ao webhook' : 'Requisição recebida' }), el('pre', { text: pretty(entry.request_body) })]),
       el('div', {}, [
-        el('h3', { text: entry.kind === 'push' ? 'Webhook response' : 'Response' }),
+        el('h3', { text: isPush ? 'Resposta do webhook' : 'Resposta do servidor' }),
         el('pre', { text: entry.error ? entry.error : pretty(entry.response_body) }),
       ]),
     ]),
-    el('h3', { text: 'Request headers' }),
+    el('h3', { text: 'Headers da requisição (credenciais mascaradas)' }),
     el('pre', { text: JSON.stringify(entry.request_headers || {}, null, 2) }),
   ]);
-  const node = el('div', { class: `entry${state.open.has(entry.id) ? ' open' : ''}`, 'data-id': entry.id }, [row, details]);
+  const node = el('div', { class: `entry${state.open.has(entry.id) ? ' open' : ''}` }, [el('div', { class: `rail ${entry.kind}` }), row, details]);
   row.addEventListener('click', () => {
     node.classList.toggle('open');
     if (node.classList.contains('open')) state.open.add(entry.id); else state.open.delete(entry.id);
@@ -236,23 +388,45 @@ function render(entry) {
 }
 
 function redraw() {
-  const visible = [...state.entries.values()]
+  const all = [...state.entries.values()];
+  const visible = all
     .filter(e => state.filter === 'all' || e.kind === state.filter)
+    .filter(e => !state.task || e.task_id === state.task)
     .sort((a, b) => b.id - a.id);
   list.replaceChildren(...visible.map(render));
-  empty.style.display = visible.length ? 'none' : 'block';
+  empty.style.display = all.length ? 'none' : 'block';
+  const chip = document.getElementById('task-chip');
+  chip.classList.toggle('show', Boolean(state.task));
+  document.getElementById('task-chip-label').textContent = state.task ? `Só a tarefa ${state.task.slice(0, 8)}` : '';
+  document.getElementById('count').textContent = all.length ? `${visible.length} de ${all.length} registros` : '';
 }
 
+function setText(id, value) { document.getElementById(id).textContent = value; }
+
 function showAgent(agent) {
-  document.getElementById('agent-name').textContent = agent.name;
-  const auth = agent.auth === 'none' ? 'no auth' : agent.auth === 'bearer' ? 'Bearer token' : `API key (${agent.api_key_header})`;
-  const meta = document.getElementById('agent-meta');
-  meta.replaceChildren(
-    el('a', { href: agent.card_url, target: '_blank', rel: 'noopener', text: 'Agent card' }),
-    el('span', { text: `LLM: ${agent.llm}` }),
-    el('span', { text: `Auth: ${auth}` }),
-    ...(agent.force_fail ? [el('span', { class: 'pill err', text: 'FORCE_FAIL on' })] : []),
-  );
+  if (JSON.stringify(agent) === JSON.stringify(state.agent)) return;
+  state.agent = agent;
+  setText('agent-name', `${agent.name} · ${new URL(agent.card_url).host}`);
+  setText('card-url', agent.card_url);
+  document.getElementById('card-open').href = agent.card_url;
+  setText('jsonrpc-url', agent.jsonrpc_url);
+  setText('rest-url', agent.rest_url);
+  const model = document.getElementById('cfg-model');
+  model.replaceChildren(agent.llm === 'openai'
+    ? el('span', { text: `OpenAI ${agent.model || ''}`.trim() })
+    : el('span', { class: 'tag warn', text: 'Eco: repete a mensagem, sem LLM' }));
+  const auth = agent.auth === 'none' ? 'Nenhuma' : agent.auth === 'bearer' ? 'Token Bearer' : `API key no header ${agent.api_key_header}`;
+  setText('cfg-auth', auth);
+  setText('cfg-delay', agent.default_delay_seconds ? `${agent.default_delay_seconds} s em toda tarefa` : 'Nenhum');
+  const fail = document.getElementById('cfg-fail');
+  fail.replaceChildren(agent.force_fail
+    ? el('span', { class: 'tag err', text: 'Ligada: toda tarefa falha' })
+    : el('span', { text: 'Desligada' }));
+  setText('curl-example', [
+    `curl ${agent.jsonrpc_url} \\`,
+    `  -H 'Content-Type: application/json' -H 'A2A-Version: 1.0' \\`,
+    `  -d '{"jsonrpc":"2.0","id":"1","method":"SendMessage","params":{"message":{"messageId":"m1","role":"ROLE_USER","parts":[{"text":"Olá!"}]}}}'`,
+  ].join('\n'));
 }
 
 async function poll() {
@@ -263,38 +437,53 @@ async function poll() {
       const response = await fetch(`/dashboard/api/traffic?after=${state.version}`);
       const data = await response.json();
       showAgent(data.agent);
-      if (data.version < state.version) state.entries.clear();
       for (const entry of data.entries) state.entries.set(entry.id, entry);
       const changed = data.entries.length > 0 || data.version !== state.version;
       state.version = data.version;
       if (changed) redraw();
       dot.className = 'dot';
-      label.textContent = 'Live';
+      label.textContent = 'Ao vivo';
     } catch (_) {
       dot.className = 'dot down';
-      label.textContent = 'Agent unreachable';
+      label.textContent = 'Servidor fora do ar';
     }
   }
   setTimeout(poll, 1000);
 }
 
-document.getElementById('filter').addEventListener('change', event => {
-  state.filter = event.target.value;
+document.getElementById('filter').addEventListener('click', event => {
+  const button = event.target.closest('button');
+  if (!button) return;
+  state.filter = button.dataset.f;
+  for (const b of document.querySelectorAll('#filter button')) b.classList.toggle('on', b === button);
   redraw();
 });
+document.getElementById('task-clear').addEventListener('click', () => { state.task = null; redraw(); });
 document.getElementById('pause').addEventListener('click', event => {
   state.paused = !state.paused;
-  event.target.textContent = state.paused ? 'Resume' : 'Pause';
+  event.target.textContent = state.paused ? 'Retomar' : 'Pausar';
   document.getElementById('dot').className = state.paused ? 'dot paused' : 'dot';
-  document.getElementById('live-label').textContent = state.paused ? 'Paused' : 'Live';
+  document.getElementById('live-label').textContent = state.paused ? 'Pausado' : 'Ao vivo';
 });
 document.getElementById('clear').addEventListener('click', async () => {
   const response = await fetch('/dashboard/api/clear', { method: 'POST' });
   const data = await response.json();
   state.entries.clear();
   state.open.clear();
+  state.task = null;
   state.version = data.version;
   redraw();
+});
+document.addEventListener('click', async event => {
+  const button = event.target.closest('[data-copy]');
+  if (!button) return;
+  try {
+    await navigator.clipboard.writeText(document.getElementById(button.dataset.copy).textContent);
+    button.textContent = 'Copiado';
+    setTimeout(() => { button.textContent = 'Copiar'; }, 1200);
+  } catch (_) {
+    button.textContent = 'Falhou';
+  }
 });
 
 redraw();

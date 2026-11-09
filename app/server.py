@@ -151,7 +151,11 @@ def create_app(settings: Settings | None = None) -> Starlette:
                 'agent': {
                     'name': settings.agent_name,
                     'card_url': f'{base_url(settings, request)}{AGENT_CARD_WELL_KNOWN_PATH}',
+                    'jsonrpc_url': f'{base_url(settings, request)}/a2a/jsonrpc',
+                    'rest_url': f'{base_url(settings, request)}/a2a/rest',
                     'llm': agent.mode,
+                    'model': agent.model,
+                    'default_delay_seconds': settings.default_delay_seconds,
                     'auth': settings.auth_mode,
                     'api_key_header': settings.api_key_header if settings.auth_mode == 'api_key' else None,
                     'force_fail': settings.force_fail,

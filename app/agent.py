@@ -45,6 +45,10 @@ class ReferenceAgent:
     def mode(self) -> str:
         return 'openai' if self._model is not None else 'echo'
 
+    @property
+    def model(self) -> str | None:
+        return self._model.model_name if self._model is not None else None
+
     async def _respond(self, state: MessagesState) -> dict:
         if self._model is None:
             last = _as_text(state['messages'][-1].content)

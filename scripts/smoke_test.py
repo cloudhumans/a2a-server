@@ -132,7 +132,7 @@ async def run(args) -> None:
     server = uvicorn.Server(
         uvicorn.Config(
             Starlette(routes=[Route('/hook', webhook.handle, methods=['POST'])]),
-            host='127.0.0.1',
+            host=args.webhook_host,
             port=args.webhook_port,
             log_level='warning',
         )
@@ -171,8 +171,13 @@ async def run(args) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description='End-to-end checks against a running A2A agent.')
     parser.add_argument('--url', default=os.getenv('AGENT_URL', 'http://localhost:8000'))
-    parser.add_argument('--token', default=os.getenv('A2A_AUTH_TOKEN'))
-    parser.add_argument('--api-key-header', default=os.getenv('SMOKE_API_KEY_HEADER'))
+    auth_mode = os.getenv('A2A_AUTH_MODE', 'none').strip().lower()
+    parser.add_argument('--token', default=os.getenv('A2A_AUTH_TOKEN') if auth_mode != 'none' else None)
+    parser.add_argument(
+        '--api-key-header',
+        default=os.getenv('A2A_API_KEY_HEADER', 'X-API-Key') if auth_mode == 'api_key' else None,
+    )
+    parser.add_argument('--webhook-host', default='127.0.0.1', help='Address the local webhook listens on')
     parser.add_argument('--webhook-port', type=int, default=8099)
     parser.add_argument('--webhook-url', help='URL the agent must call, when it cannot reach 127.0.0.1')
     parser.add_argument('--async-delay', type=int, default=5)
