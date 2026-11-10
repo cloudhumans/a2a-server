@@ -1,7 +1,7 @@
 [project]
-name = "a2a-reference-agent"
+name = "a2a-server"
 version = "0.1.0"
-description = "Reference A2A agent built with LangGraph: sync, async with push notifications, fixed-token auth and a live traffic dashboard"
+description = "A2A server built with LangGraph: sync, async with push notifications, fixed-token auth and a live traffic dashboard"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

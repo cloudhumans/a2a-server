@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -180,71 +180,71 @@ pre {
     <div class="mark" aria-hidden="true">A2A</div>
     <div class="brand">
       <h1>A2A Server</h1>
-      <div class="sub" id="agent-name">carregando…</div>
+      <div class="sub" id="agent-name">loading…</div>
     </div>
-    <span class="live"><span class="dot" id="dot"></span><span id="live-label">Ao vivo</span></span>
+    <span class="live"><span class="dot" id="dot"></span><span id="live-label">Live</span></span>
   </div>
 </header>
 
 <main class="wrap">
   <p class="intro">
-    Este painel mostra, do lado do servidor, tudo o que acontece com este agente A2A: cada chamada que um cliente faz
-    e cada aviso (push) que o servidor envia de volta. Use junto com o cliente que você está testando para ver as duas pontas da conversa.
+    This dashboard shows, from the server side, everything that happens to this A2A agent: every call a client makes
+    and every push notification the server sends back. Use it next to the client you are testing to see both ends of the conversation.
   </p>
 
   <section class="cards">
     <div class="card">
       <h2>Agent Card</h2>
-      <p class="help">A ficha pública do agente, definida pelo protocolo A2A: nome, habilidades, endereços e autenticação exigida. É a primeira coisa que um cliente lê, e é essa URL que se cadastra numa plataforma.</p>
-      <div class="url"><code id="card-url">…</code><button class="icon-btn" data-copy="card-url">Copiar</button><a class="icon-btn" id="card-open" target="_blank" rel="noopener">Abrir</a></div>
+      <p class="help">The agent's public profile, defined by the A2A protocol: name, skills, endpoints and required authentication. It is the first thing a client reads, and this is the URL you register in a platform.</p>
+      <div class="url"><code id="card-url">…</code><button class="icon-btn" data-copy="card-url">Copy</button><a class="icon-btn" id="card-open" target="_blank" rel="noopener">Open</a></div>
     </div>
     <div class="card">
       <h2>Endpoints</h2>
-      <p class="help">Onde os clientes falam com o agente. Os dois aceitam as versões 1.0 e 0.3 do protocolo.</p>
+      <p class="help">Where clients talk to the agent. Both accept protocol versions 1.0 and 0.3.</p>
       <dl class="kv">
-        <dt>JSON-RPC</dt><dd><div class="url"><code id="jsonrpc-url">…</code><button class="icon-btn" data-copy="jsonrpc-url">Copiar</button></div></dd>
-        <dt>HTTP+JSON</dt><dd><div class="url"><code id="rest-url">…</code><button class="icon-btn" data-copy="rest-url">Copiar</button></div></dd>
+        <dt>JSON-RPC</dt><dd><div class="url"><code id="jsonrpc-url">…</code><button class="icon-btn" data-copy="jsonrpc-url">Copy</button></div></dd>
+        <dt>HTTP+JSON</dt><dd><div class="url"><code id="rest-url">…</code><button class="icon-btn" data-copy="rest-url">Copy</button></div></dd>
       </dl>
     </div>
     <div class="card">
-      <h2>Configuração</h2>
-      <p class="help">Como este servidor está respondendo agora. Muda pelas variáveis de ambiente.</p>
+      <h2>Configuration</h2>
+      <p class="help">How this server is responding right now. Change it through environment variables.</p>
       <dl class="kv">
-        <dt>Modelo</dt><dd id="cfg-model">…</dd>
-        <dt>Autenticação</dt><dd id="cfg-auth">…</dd>
-        <dt>Atraso padrão</dt><dd id="cfg-delay">…</dd>
-        <dt>Falha forçada</dt><dd id="cfg-fail">…</dd>
+        <dt>Model</dt><dd id="cfg-model">…</dd>
+        <dt>Authentication</dt><dd id="cfg-auth">…</dd>
+        <dt>Default delay</dt><dd id="cfg-delay">…</dd>
+        <dt>Forced failure</dt><dd id="cfg-fail">…</dd>
       </dl>
     </div>
   </section>
 
   <section>
-    <div class="section-head"><h2>Tráfego</h2></div>
+    <div class="section-head"><h2>Traffic</h2></div>
     <div class="legend">
-      <span><span class="tag inbound">Recebida</span> chamada que um cliente fez a este servidor</span>
-      <span><span class="tag push">Push enviado</span> aviso que este servidor mandou ao webhook do cliente (modo assíncrono)</span>
+      <span><span class="tag inbound">Received</span> a call a client made to this server</span>
+      <span><span class="tag push">Push sent</span> a notification this server sent to the client's webhook (async mode)</span>
     </div>
     <div class="toolbar">
       <div class="seg" id="filter">
-        <button data-f="all" class="on">Tudo</button>
-        <button data-f="inbound">Recebidas</button>
+        <button data-f="all" class="on">All</button>
+        <button data-f="inbound">Received</button>
         <button data-f="push">Pushes</button>
       </div>
-      <span class="task-chip" id="task-chip"><span id="task-chip-label"></span><button id="task-clear" title="Mostrar todas as tarefas">×</button></span>
-      <button class="btn" id="pause">Pausar</button>
-      <button class="btn" id="clear">Limpar</button>
+      <span class="task-chip" id="task-chip"><span id="task-chip-label"></span><button id="task-clear" title="Show all tasks">×</button></span>
+      <button class="btn" id="pause">Pause</button>
+      <button class="btn" id="clear">Clear</button>
       <span class="count" id="count"></span>
     </div>
     <div id="list"></div>
     <div class="empty" id="empty">
-      <h3>Nenhuma chamada ainda</h3>
-      <div style="color: var(--muted)">Assim que um cliente chamar o agente, as chamadas aparecem aqui. Para gerar tráfego:</div>
+      <h3>No calls yet</h3>
+      <div style="color: var(--muted)">Calls show up here as soon as a client calls the agent. To generate traffic:</div>
       <ol>
-        <li>Abra o A2A Inspector que sobe junto no <code>docker compose</code> (o link com o token sai em <code>docker compose logs inspector</code>) e mande uma mensagem.</li>
-        <li>Ou chame direto pelo terminal:
+        <li>Open the A2A Inspector that starts with <code>docker compose</code> (the link with its token is in <code>docker compose logs --tail 500 inspector</code>) and send a message.</li>
+        <li>Or call it straight from the terminal:
           <pre id="curl-example"></pre>
         </li>
-        <li>Para testar estados, inclua na mensagem <code>[delay=30]</code>, <code>[input-required]</code> ou <code>[fail]</code>.</li>
+        <li>To test task states, include <code>[delay=30]</code>, <code>[input-required]</code> or <code>[fail]</code> in the message.</li>
       </ol>
     </div>
   </section>
@@ -256,14 +256,14 @@ const list = document.getElementById('list');
 const empty = document.getElementById('empty');
 
 const STATES = {
-  SUBMITTED: ['recebida', ''],
-  WORKING: ['em andamento', ''],
-  COMPLETED: ['concluída', 'ok'],
-  INPUT_REQUIRED: ['aguardando o cliente', 'warn'],
-  AUTH_REQUIRED: ['aguardando autenticação', 'warn'],
-  FAILED: ['falhou', 'err'],
-  CANCELED: ['cancelada', 'err'],
-  REJECTED: ['rejeitada', 'err'],
+  SUBMITTED: ['submitted', ''],
+  WORKING: ['working', ''],
+  COMPLETED: ['completed', 'ok'],
+  INPUT_REQUIRED: ['waiting for the client', 'warn'],
+  AUTH_REQUIRED: ['waiting for authentication', 'warn'],
+  FAILED: ['failed', 'err'],
+  CANCELED: ['canceled', 'err'],
+  REJECTED: ['rejected', 'err'],
 };
 
 function stateKey(value) {
@@ -293,7 +293,7 @@ function parse(body) {
 }
 
 function pretty(body) {
-  if (!body) return '(vazio)';
+  if (!body) return '(empty)';
   const lines = body.split('\n').filter(line => line.startsWith('data:'));
   try {
     if (lines.length) return lines.map(line => JSON.stringify(JSON.parse(line.slice(5)), null, 2)).join('\n\n');
@@ -307,33 +307,33 @@ function inboundStory(entry) {
   const request = parse(entry.request_body) || {};
   const config = (request.params || request).configuration || {};
   const tags = [];
-  if (config.taskPushNotificationConfig || config.pushNotificationConfig) tags.push(['assíncrono, com push', 'push']);
-  if (config.returnImmediately || config.blocking === false) tags.push(['resposta imediata', '']);
-  if (entry.status === 401) return { title: 'Recusou a chamada: credencial ausente ou inválida', tags };
-  if (path.endsWith('agent-card.json') || path.endsWith('/card')) return { title: 'Leu o Agent Card', tags };
-  if (/SendStreamingMessage|message\/stream/.test(method) || path.endsWith('message:stream')) return { title: 'Recebeu uma mensagem com streaming', tags };
-  if (/SendMessage|message\/send/.test(method) || path.endsWith('message:send')) return { title: 'Recebeu uma mensagem', tags };
-  if (/GetTask|tasks\/get/.test(method) || (entry.method === 'GET' && /\/tasks\/[^/:]+$/.test(path))) return { title: 'Consultou o estado da tarefa', tags };
-  if (/CancelTask|tasks\/cancel/.test(method) || path.endsWith(':cancel')) return { title: 'Pediu o cancelamento da tarefa', tags };
-  if (/PushNotificationConfig/i.test(method) || path.includes('pushNotificationConfigs')) return { title: 'Configurou o push da tarefa', tags };
+  if (config.taskPushNotificationConfig || config.pushNotificationConfig) tags.push(['async, with push', 'push']);
+  if (config.returnImmediately || config.blocking === false) tags.push(['return immediately', '']);
+  if (entry.status === 401) return { title: 'Rejected the call: missing or invalid credentials', tags };
+  if (path.endsWith('agent-card.json') || path.endsWith('/card')) return { title: 'Read the Agent Card', tags };
+  if (/SendStreamingMessage|message\/stream/.test(method) || path.endsWith('message:stream')) return { title: 'Received a streaming message', tags };
+  if (/SendMessage|message\/send/.test(method) || path.endsWith('message:send')) return { title: 'Received a message', tags };
+  if (/GetTask|tasks\/get/.test(method) || (entry.method === 'GET' && /\/tasks\/[^/:]+$/.test(path))) return { title: 'Fetched the task state', tags };
+  if (/CancelTask|tasks\/cancel/.test(method) || path.endsWith(':cancel')) return { title: 'Asked to cancel the task', tags };
+  if (/PushNotificationConfig/i.test(method) || path.includes('pushNotificationConfigs')) return { title: 'Configured push for the task', tags };
   return { title: method || `${entry.method} ${path}`, tags };
 }
 
 function pushStory(entry) {
-  if (entry.error) return 'Não conseguiu avisar o webhook';
-  if (entry.event === 'artifactUpdate') return 'Avisou: a resposta está pronta';
-  if (entry.event === 'task') return 'Avisou: tarefa criada';
+  if (entry.error) return 'Could not reach the webhook';
+  if (entry.event === 'artifactUpdate') return 'Notified: the response is ready';
+  if (entry.event === 'task') return 'Notified: task created';
   const key = stateKey(entry.task_state);
-  if (key === 'WORKING') return 'Avisou: tarefa em andamento';
-  if (key === 'COMPLETED') return 'Avisou: tarefa concluída';
-  if (key === 'INPUT_REQUIRED') return 'Avisou: o agente precisa de uma resposta do cliente';
-  if (key === 'FAILED') return 'Avisou: a tarefa falhou';
-  return 'Avisou o webhook';
+  if (key === 'WORKING') return 'Notified: task in progress';
+  if (key === 'COMPLETED') return 'Notified: task completed';
+  if (key === 'INPUT_REQUIRED') return 'Notified: the agent needs input from the client';
+  if (key === 'FAILED') return 'Notified: the task failed';
+  return 'Notified the webhook';
 }
 
 function httpTag(entry) {
-  if (entry.error) return el('span', { class: 'tag err', text: 'erro de rede' });
-  if (entry.status == null) return el('span', { class: 'tag', text: 'em curso' });
+  if (entry.error) return el('span', { class: 'tag err', text: 'network error' });
+  if (entry.status == null) return el('span', { class: 'tag', text: 'in flight' });
   const cls = entry.status >= 500 ? 'err' : entry.status >= 400 ? 'warn' : 'ok';
   return el('span', { class: `tag ${cls}`, text: `HTTP ${entry.status}` });
 }
@@ -343,17 +343,17 @@ function render(entry) {
   const isPush = entry.kind === 'push';
   const story = isPush ? { title: pushStory(entry), tags: [] } : inboundStory(entry);
   const tech = [];
-  if (isPush) tech.push(`para ${entry.path}`);
+  if (isPush) tech.push(`to ${entry.path}`);
   else tech.push(`${entry.rpc_method ? entry.rpc_method + ' · ' : ''}${entry.method} ${entry.path.split('?')[0]}`);
   const techNode = el('div', { class: 'tech mono', text: tech.join(' · ') });
   if (entry.task_id) {
     techNode.append(' · ');
-    const link = el('a', { title: 'Mostrar só esta tarefa', text: `tarefa ${entry.task_id.slice(0, 8)}` });
+    const link = el('a', { title: 'Show only this task', text: `task ${entry.task_id.slice(0, 8)}` });
     link.addEventListener('click', event => { event.stopPropagation(); state.task = entry.task_id; redraw(); });
     techNode.append(link);
   }
   const title = el('div', { class: 'title' }, [
-    el('span', { class: `tag ${entry.kind}`, text: isPush ? 'Push enviado' : 'Recebida' }),
+    el('span', { class: `tag ${entry.kind}`, text: isPush ? 'Push sent' : 'Received' }),
     el('span', { text: story.title }),
     ...story.tags.map(([label, cls]) => el('span', { class: `tag ${cls}`, text: label })),
   ]);
@@ -370,13 +370,13 @@ function render(entry) {
   ]);
   const details = el('div', { class: 'details' }, [
     el('div', { class: 'cols' }, [
-      el('div', {}, [el('h3', { text: isPush ? 'Enviado ao webhook' : 'Requisição recebida' }), el('pre', { text: pretty(entry.request_body) })]),
+      el('div', {}, [el('h3', { text: isPush ? 'Sent to the webhook' : 'Request received' }), el('pre', { text: pretty(entry.request_body) })]),
       el('div', {}, [
-        el('h3', { text: isPush ? 'Resposta do webhook' : 'Resposta do servidor' }),
+        el('h3', { text: isPush ? 'Webhook response' : 'Server response' }),
         el('pre', { text: entry.error ? entry.error : pretty(entry.response_body) }),
       ]),
     ]),
-    el('h3', { text: 'Headers da requisição (credenciais mascaradas)' }),
+    el('h3', { text: 'Request headers (credentials masked)' }),
     el('pre', { text: JSON.stringify(entry.request_headers || {}, null, 2) }),
   ]);
   const node = el('div', { class: `entry${state.open.has(entry.id) ? ' open' : ''}` }, [el('div', { class: `rail ${entry.kind}` }), row, details]);
@@ -397,8 +397,8 @@ function redraw() {
   empty.style.display = all.length ? 'none' : 'block';
   const chip = document.getElementById('task-chip');
   chip.classList.toggle('show', Boolean(state.task));
-  document.getElementById('task-chip-label').textContent = state.task ? `Só a tarefa ${state.task.slice(0, 8)}` : '';
-  document.getElementById('count').textContent = all.length ? `${visible.length} de ${all.length} registros` : '';
+  document.getElementById('task-chip-label').textContent = state.task ? `Only task ${state.task.slice(0, 8)}` : '';
+  document.getElementById('count').textContent = all.length ? `${visible.length} of ${all.length} entries` : '';
 }
 
 function setText(id, value) { document.getElementById(id).textContent = value; }
@@ -414,18 +414,18 @@ function showAgent(agent) {
   const model = document.getElementById('cfg-model');
   model.replaceChildren(agent.llm === 'openai'
     ? el('span', { text: `OpenAI ${agent.model || ''}`.trim() })
-    : el('span', { class: 'tag warn', text: 'Eco: repete a mensagem, sem LLM' }));
-  const auth = agent.auth === 'none' ? 'Nenhuma' : agent.auth === 'bearer' ? 'Token Bearer' : `API key no header ${agent.api_key_header}`;
+    : el('span', { class: 'tag warn', text: 'Echo: repeats the message, no LLM' }));
+  const auth = agent.auth === 'none' ? 'None' : agent.auth === 'bearer' ? 'Bearer token' : `API key in header ${agent.api_key_header}`;
   setText('cfg-auth', auth);
-  setText('cfg-delay', agent.default_delay_seconds ? `${agent.default_delay_seconds} s em toda tarefa` : 'Nenhum');
+  setText('cfg-delay', agent.default_delay_seconds ? `${agent.default_delay_seconds} s on every task` : 'None');
   const fail = document.getElementById('cfg-fail');
   fail.replaceChildren(agent.force_fail
-    ? el('span', { class: 'tag err', text: 'Ligada: toda tarefa falha' })
-    : el('span', { text: 'Desligada' }));
+    ? el('span', { class: 'tag err', text: 'On: every task fails' })
+    : el('span', { text: 'Off' }));
   setText('curl-example', [
     `curl ${agent.jsonrpc_url} \\`,
     `  -H 'Content-Type: application/json' -H 'A2A-Version: 1.0' \\`,
-    `  -d '{"jsonrpc":"2.0","id":"1","method":"SendMessage","params":{"message":{"messageId":"m1","role":"ROLE_USER","parts":[{"text":"Olá!"}]}}}'`,
+    `  -d '{"jsonrpc":"2.0","id":"1","method":"SendMessage","params":{"message":{"messageId":"m1","role":"ROLE_USER","parts":[{"text":"Hello!"}]}}}'`,
   ].join('\n'));
 }
 
@@ -442,10 +442,10 @@ async function poll() {
       state.version = data.version;
       if (changed) redraw();
       dot.className = 'dot';
-      label.textContent = 'Ao vivo';
+      label.textContent = 'Live';
     } catch (_) {
       dot.className = 'dot down';
-      label.textContent = 'Servidor fora do ar';
+      label.textContent = 'Server is down';
     }
   }
   setTimeout(poll, 1000);
@@ -461,9 +461,9 @@ document.getElementById('filter').addEventListener('click', event => {
 document.getElementById('task-clear').addEventListener('click', () => { state.task = null; redraw(); });
 document.getElementById('pause').addEventListener('click', event => {
   state.paused = !state.paused;
-  event.target.textContent = state.paused ? 'Retomar' : 'Pausar';
+  event.target.textContent = state.paused ? 'Resume' : 'Pause';
   document.getElementById('dot').className = state.paused ? 'dot paused' : 'dot';
-  document.getElementById('live-label').textContent = state.paused ? 'Pausado' : 'Ao vivo';
+  document.getElementById('live-label').textContent = state.paused ? 'Paused' : 'Live';
 });
 document.getElementById('clear').addEventListener('click', async () => {
   const response = await fetch('/dashboard/api/clear', { method: 'POST' });
@@ -479,10 +479,10 @@ document.addEventListener('click', async event => {
   if (!button) return;
   try {
     await navigator.clipboard.writeText(document.getElementById(button.dataset.copy).textContent);
-    button.textContent = 'Copiado';
-    setTimeout(() => { button.textContent = 'Copiar'; }, 1200);
+    button.textContent = 'Copied';
+    setTimeout(() => { button.textContent = 'Copy'; }, 1200);
   } catch (_) {
-    button.textContent = 'Falhou';
+    button.textContent = 'Failed';
   }
 });
 

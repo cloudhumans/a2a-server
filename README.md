@@ -1,117 +1,119 @@
-# A2A Reference Agent
+# A2A Server
 
-Um agente pronto para testar integrações [A2A (Agent2Agent)](https://a2a-protocol.org/latest/specification/) de ponta a ponta: modo síncrono, assíncrono com push notification, `input-required` e falhas. Feito com [LangGraph](https://www.langchain.com/langgraph) e o [SDK oficial do A2A em Python](https://github.com/a2aproject/a2a-python), e sobe com um painel que mostra cada chamada recebida e cada push enviado.
+A ready-to-run agent for testing [A2A (Agent2Agent)](https://a2a-protocol.org/latest/specification/) integrations end to end: synchronous calls, asynchronous calls with push notifications, `input-required` and failures. Built with [LangGraph](https://www.langchain.com/langgraph) and the [official A2A Python SDK](https://github.com/a2aproject/a2a-python), it ships with a dashboard that shows every call received and every push sent.
 
-![Painel A2A Server](docs/a2a-server.png)
+![A2A Server dashboard](docs/a2a-server.png)
 
-## Começando
+## Getting started
 
 ```bash
-cp .env.example .env        # opcional: coloque sua OPENAI_API_KEY
+cp .env.example .env        # optional: add your OPENAI_API_KEY
 docker compose up --build
 ```
 
-| O que | Onde |
+| What | Where |
 |---|---|
-| **A2A Server**, o painel de tráfego do agente | http://localhost:8000/dashboard |
-| **Agent Card**, a URL que se cadastra na sua plataforma | http://localhost:8000/.well-known/agent-card.json |
-| **A2A Inspector**, um cliente visual para conversar com o agente | link com token em `docker compose logs inspector` |
+| **A2A Server**, the agent's traffic dashboard | http://localhost:8000/dashboard |
+| **Agent Card**, the URL you register in your platform | http://localhost:8000/.well-known/agent-card.json |
+| **A2A Inspector**, a visual client to talk to the agent | link with its token in `docker compose logs inspector` |
 
-Sem `OPENAI_API_KEY`, o agente responde em modo eco (`Echo: <sua mensagem>`), o que já basta para testar o protocolo.
+Without `OPENAI_API_KEY` the agent runs in echo mode (`Echo: <your message>`), which is enough to test the protocol.
 
-## O que dá para testar
+## What you can test
 
-Escreva estes comandos no texto da mensagem para forçar cada situação:
+Put these directives in the message text to force each scenario:
 
-| Na mensagem | O que acontece |
+| In the message | What happens |
 |---|---|
-| qualquer texto | Resposta normal, tarefa termina em `completed` |
-| `[delay=30]` | O agente demora 30 s, mandando atualizações `working` no caminho. Bom para o modo assíncrono |
-| `[input-required]` | A tarefa para pedindo um dado. A próxima mensagem na mesma tarefa a conclui |
-| `[fail]` | A tarefa termina em `failed` |
+| any text | Normal answer, the task ends in `completed` |
+| `[delay=30]` | The agent takes 30 s, sending `working` updates along the way. Good for async mode |
+| `[input-required]` | The task stops and asks for more information. The next message on the same task completes it |
+| `[fail]` | The task ends in `failed` |
 
-Quando o cliente manda um texto fixo e você não controla a mensagem, use a variação que sempre falha:
+When the client sends a fixed text and you cannot control the message, use the variant that always fails:
 
 ```bash
 docker compose --profile variants up -d agent-fail     # http://localhost:8001
 ```
 
-## Conceitos em 30 segundos
+## Concepts in 30 seconds
 
-- **Agent Card**: a ficha pública do agente, definida pelo protocolo. Diz o nome, as habilidades, os endereços e a autenticação exigida. Todo cliente começa por ela.
-- **Tarefa (task)**: cada pedido vira uma tarefa com estado (`submitted`, `working`, `input-required`, `completed`, `failed`...).
-- **Síncrono**: o cliente espera a resposta, ou recebe a tarefa na hora (`returnImmediately`) e consulta com `GetTask`.
-- **Assíncrono**: o cliente informa um webhook (`taskPushNotificationConfig`) e o agente avisa cada mudança de estado com um POST, mandando o token em `X-A2A-Notification-Token`.
-- **Status e artefato**: o status diz em que pé a tarefa está; o artefato é o resultado. A pergunta de um `input-required` vem no status, a resposta final vem no artefato.
+- **Agent Card**: the agent's public profile, defined by the protocol. It states the name, skills, endpoints and required authentication. Every client starts there.
+- **Task**: each request becomes a task with a state (`submitted`, `working`, `input-required`, `completed`, `failed`...).
+- **Sync**: the client waits for the answer, or gets the task right away (`returnImmediately`) and polls it with `GetTask`.
+- **Async**: the client sends a webhook (`taskPushNotificationConfig`) and the agent POSTs every state change to it, with the token in `X-A2A-Notification-Token`.
+- **Status and artifact**: the status says where the task stands; the artifact is the result. The question of an `input-required` comes in the status, the final answer comes in the artifact.
 
-## Autenticação
+## Authentication
 
-No `.env`:
+In `.env`:
 
-| `A2A_AUTH_MODE` | O cliente envia |
+| `A2A_AUTH_MODE` | The client sends |
 |---|---|
-| `none` (padrão) | nada |
+| `none` (default) | nothing |
 | `bearer` | `Authorization: Bearer <A2A_AUTH_TOKEN>` |
-| `api_key` | `<A2A_API_KEY_HEADER>: <A2A_AUTH_TOKEN>` (padrão `X-API-Key`) |
+| `api_key` | `<A2A_API_KEY_HEADER>: <A2A_AUTH_TOKEN>` (default `X-API-Key`) |
 
-Vale para tudo em `/a2a/*`; o Agent Card e o painel continuam abertos, e o card declara o esquema exigido. Sem credencial válida, a resposta é `401`. Para o Inspector já entrar autenticado no modo `bearer`, preencha `INSPECTOR_AUTH="Bearer <token>"`.
+It applies to everything under `/a2a/*`; the Agent Card and the dashboard stay open, and the card declares the required scheme. Without valid credentials the response is `401`. To have the Inspector authenticate in `bearer` mode from the start, set `INSPECTOR_AUTH="Bearer <token>"`.
 
-## Teste automático
+## Automated test
 
 ```bash
 docker compose --profile test run --rm --use-aliases smoke
 ```
 
-Confere o Agent Card, o modo síncrono, `returnImmediately` com `GetTask`, a entrega de push a um webhook, `input-required` e, se houver autenticação configurada, a recusa sem credencial. O script (`scripts/smoke_test.py`) também roda contra qualquer outro agente A2A 1.0 com push, o que ajuda a validar um agente antes de integrá-lo.
+It checks the Agent Card, sync mode, `returnImmediately` with `GetTask`, push delivery to a webhook, `input-required` and, when authentication is configured, rejection without credentials. The script (`scripts/smoke_test.py`) also runs against any other A2A 1.0 agent with push support, which helps validate an agent before integrating it.
 
-## Sobre o A2A Inspector
+## About the A2A Inspector
 
-O [Inspector](https://github.com/a2aproject/a2a-inspector) é a ferramenta visual oficial do projeto A2A e funciona com qualquer agente, não só com este. O compose já o abre apontando para o agente e recebendo push no próprio webhook: marque "Push notifications" no chat e acompanhe a entrega no painel do A2A Server.
+![A2A Inspector talking to the agent](docs/a2a-inspector.png)
 
-- O log sempre mostra a porta interna `8080`; se você mudou `INSPECTOR_PORT`, troque a porta no link e mantenha o token.
-- O projeto ainda não publica imagem pronta, então o primeiro `docker compose up --build` compila o Inspector a partir do código-fonte e leva alguns minutos. Depois fica em cache. A versão fixada é um commit do `main` (`30c10de`), e não a `v0.2.0`, porque o reenvio editável da aba Traffic, usado abaixo, só existe depois dela.
+The [Inspector](https://github.com/a2aproject/a2a-inspector) is the official visual tool of the A2A project and works with any agent, not only this one. Compose starts it pointed at the agent and receiving pushes on its own webhook: tick "Push notifications" in the chat and follow the delivery in the A2A Server dashboard.
 
-### Imitando um cliente que responde na hora e acompanha por push
+- The log always shows the internal port `8080`; if you changed `INSPECTOR_PORT`, change the port in the link and keep the token.
+- The project does not publish an image yet, so the first `docker compose up --build` builds the Inspector from source and takes a few minutes. It is cached afterwards. The pinned version is a `main` commit (`30c10de`) instead of `v0.2.0`, because the editable resend in the Traffic tab, used below, only exists after it.
 
-É o fluxo que plataformas como a ClaudIA usam: o `SendMessage` volta imediatamente com a tarefa em `submitted`, e o andamento chega por push ou por `GetTask`. A interface do chat não tem opção para `returnImmediately`, então o caminho é reenviar uma requisição editada:
+### Acting like a client that returns immediately and follows up via push
 
-1. No **Chat**, desmarque **Stream**, marque **Push notifications** e mande qualquer mensagem. Ela serve só de molde.
-2. Na aba **Traffic**, clique na linha `POST /a2a/jsonrpc` dessa mensagem e depois em **Edit and resend**.
-3. No **Body**, dentro de `params.configuration`, acrescente `"returnImmediately": true,` antes de `"taskPushNotificationConfig"`. Troque o `messageId` por qualquer valor novo e o texto da mensagem por algo como `[delay=30] gere um relatório`.
-4. Clique em **Send**. A resposta aparece na própria aba Traffic, em milissegundos, com a tarefa em `TASK_STATE_SUBMITTED`.
-5. Na aba **Tasks**, a tarefa aparece na lista e vai de `working` a `completed` conforme os pushes chegam. Clique nela e em **Get** para fazer o `GetTask`, como o cliente faria.
-6. No painel do A2A Server, acompanhe os pushes saindo para o webhook do Inspector e a consulta `GetTask` chegando.
+This is the flow platforms usually use: `SendMessage` returns right away with the task in `submitted`, and progress arrives via push or `GetTask`. The chat UI has no option for `returnImmediately`, so the way to do it is to resend an edited request:
 
-## Configuração
+1. In **Chat**, untick **Stream**, tick **Push notifications** and send any message. It only serves as a template.
+2. In the **Traffic** tab, click the `POST /a2a/jsonrpc` row of that message, then **Edit and resend**.
+3. In the **Body**, inside `params.configuration`, add `"returnImmediately": true,` before `"taskPushNotificationConfig"`. Change the `messageId` to any new value and the message text to something like `[delay=30] build a report`.
+4. Click **Send**. The response shows up in the Traffic tab within milliseconds, with the task in `TASK_STATE_SUBMITTED`.
+5. In the **Tasks** tab, the task shows up in the list and moves from `working` to `completed` as pushes arrive. Click it and then **Get** to run `GetTask`, as a client would.
+6. In the A2A Server dashboard, watch the pushes going out to the Inspector's webhook and the `GetTask` call coming in.
 
-| Variável | Padrão | Uso |
+## Configuration
+
+| Variable | Default | Purpose |
 |---|---|---|
-| `OPENAI_API_KEY` | vazio | Liga o LLM. Sem ela, modo eco |
-| `OPENAI_MODEL` | `gpt-4o-mini` | Modelo usado |
-| `AGENT_SYSTEM_PROMPT` | prompt curto | Instruções do agente |
-| `AGENT_NAME` | `A2A Reference Agent` | Nome no card e no painel |
-| `PUBLIC_URL` | vazio | URL publicada no card. Vazio usa o host de cada requisição |
-| `A2A_AUTH_MODE` / `A2A_AUTH_TOKEN` / `A2A_API_KEY_HEADER` | `none` / vazio / `X-API-Key` | Autenticação |
-| `DEFAULT_DELAY_SECONDS` | `0` | Atraso de toda resposta |
-| `PROGRESS_INTERVAL_SECONDS` | `10` | Intervalo das atualizações `working` durante o atraso |
-| `FORCE_FAIL` / `FORCE_FAIL_MESSAGE` | `false` / mensagem padrão | Toda tarefa termina em `failed` com esse texto |
-| `PUSH_URL_VALIDATION` | `off` | `strict` recusa webhooks em endereços privados ou de loopback |
-| `TRAFFIC_CAPACITY` | `500` | Registros guardados pelo painel |
-| `AGENT_PORT` / `AGENT_FAIL_PORT` / `INSPECTOR_PORT` | `8000` / `8001` / `8080` | Portas publicadas no seu computador |
+| `OPENAI_API_KEY` | empty | Turns the LLM on. Without it, echo mode |
+| `OPENAI_MODEL` | `gpt-4o-mini` | Model used |
+| `AGENT_SYSTEM_PROMPT` | short prompt | Agent instructions |
+| `AGENT_NAME` | `A2A Reference Agent` | Name on the card and the dashboard |
+| `PUBLIC_URL` | empty | URL published on the card. Empty uses the host of each request |
+| `A2A_AUTH_MODE` / `A2A_AUTH_TOKEN` / `A2A_API_KEY_HEADER` | `none` / empty / `X-API-Key` | Authentication |
+| `DEFAULT_DELAY_SECONDS` | `0` | Delay applied to every answer |
+| `PROGRESS_INTERVAL_SECONDS` | `10` | Interval between `working` updates during a delay |
+| `FORCE_FAIL` / `FORCE_FAIL_MESSAGE` | `false` / default message | Every task ends in `failed` with this text |
+| `PUSH_URL_VALIDATION` | `off` | `strict` rejects webhooks on private or loopback addresses |
+| `TRAFFIC_CAPACITY` | `500` | Entries kept by the dashboard |
+| `AGENT_PORT` / `AGENT_FAIL_PORT` / `INSPECTOR_PORT` | `8000` / `8001` / `8080` | Ports published on your machine |
 
-## Usando como base para o seu agente
+## Using it as a base for your agent
 
-- `app/agent.py`: o grafo LangGraph. Troque por qualquer grafo que receba e devolva mensagens.
-- `app/executor.py`: traduz a execução em estados de tarefa A2A.
-- `app/server.py`: Agent Card, rotas A2A, push notification e painel.
-- `app/auth.py` e `app/traffic.py`: autenticação por token fixo e registro de tráfego.
+- `app/agent.py`: the LangGraph graph. Swap it for any graph that takes and returns messages.
+- `app/executor.py`: turns the run into A2A task states.
+- `app/server.py`: Agent Card, A2A routes, push notifications and dashboard.
+- `app/auth.py` and `app/traffic.py`: fixed-token authentication and traffic log.
 
-## Limites
+## Limits
 
-- Tarefas, configurações de push e histórico ficam em memória e somem ao reiniciar. É um agente de teste, não um servidor de produção.
-- O painel não tem autenticação e mostra o conteúdo das mensagens. As portas ficam presas a `127.0.0.1`; não exponha na internet sem colocar algo na frente.
-- OAuth2 `client_credentials` não está implementado.
+- Tasks, push configs and history live in memory and are gone after a restart. This is a test agent, not a production server.
+- The dashboard has no authentication and shows message contents. Ports are bound to `127.0.0.1`; do not expose it to the internet without putting something in front of it.
+- OAuth2 `client_credentials` is not implemented.
 
-## Licença
+## License
 
 Apache 2.0.

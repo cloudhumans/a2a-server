@@ -1,6 +1,6 @@
 x-agent: &agent
   build: .
-  image: a2a-reference-agent:local
+  image: a2a-server:local
   env_file:
     - path: .env
       required: false
