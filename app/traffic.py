@@ -204,7 +204,15 @@ class LoggingTransport(httpx.AsyncBaseTransport):
         )
         try:
             response = await self._inner.handle_async_request(request)
-            body = await response.aread()
+            raw = b''.join([chunk async for chunk in response.aiter_raw()])
+            await response.aclose()
+            rebuilt = httpx.Response(
+                status_code=response.status_code,
+                headers=response.headers,
+                content=raw,
+                request=request,
+                extensions=response.extensions,
+            )
         except Exception as error:
             self._log.update(
                 entry,
@@ -216,15 +224,9 @@ class LoggingTransport(httpx.AsyncBaseTransport):
             entry,
             status=response.status_code,
             duration_ms=round((time.monotonic() - started) * 1000),
-            response_body=_truncate(body),
+            response_body=_truncate(rebuilt.content),
         )
-        return httpx.Response(
-            status_code=response.status_code,
-            headers=response.headers,
-            content=body,
-            request=request,
-            extensions=response.extensions,
-        )
+        return rebuilt
 
     async def aclose(self) -> None:
         await self._inner.aclose()
